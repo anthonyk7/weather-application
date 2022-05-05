@@ -6,7 +6,7 @@ import java.util.Map;
 import javax.annotation.Generated;
 
 import com.example.Geometry;
-import com.example.Properties;
+import com.example.weatherapplication.norskamodels.Properties;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;

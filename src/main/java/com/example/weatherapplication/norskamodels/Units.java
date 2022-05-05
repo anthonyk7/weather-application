@@ -1,5 +1,5 @@
 
-package com.example;
+package com.example.weatherapplication.norskamodels;
 
 import java.util.HashMap;
 import java.util.Map;

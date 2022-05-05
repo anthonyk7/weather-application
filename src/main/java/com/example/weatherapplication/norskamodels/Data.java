@@ -1,9 +1,12 @@
 
-package com.example;
+package com.example.weatherapplication.norskamodels;
 
 import java.util.HashMap;
 import java.util.Map;
 import javax.annotation.Generated;
+
+import com.example.weatherapplication.norskamodels.Next12Hours;
+import com.example.weatherapplication.norskamodels.Next6Hours;
 import com.fasterxml.jackson.annotation.JsonAnyGetter;
 import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonIgnore;
@@ -22,23 +25,23 @@ import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 public class Data {
 
     @JsonProperty("instant")
-    private Instant instant;
+    private com.example.Instant instant;
     @JsonProperty("next_12_hours")
     private Next12Hours next12Hours;
     @JsonProperty("next_1_hours")
-    private Next1Hours next1Hours;
+    private com.example.Next1Hours next1Hours;
     @JsonProperty("next_6_hours")
     private Next6Hours next6Hours;
     @JsonIgnore
     private Map<String, Object> additionalProperties = new HashMap<String, Object>();
 
     @JsonProperty("instant")
-    public Instant getInstant() {
+    public com.example.Instant getInstant() {
         return instant;
     }
 
     @JsonProperty("instant")
-    public void setInstant(Instant instant) {
+    public void setInstant(com.example.Instant instant) {
         this.instant = instant;
     }
 
@@ -53,12 +56,12 @@ public class Data {
     }
 
     @JsonProperty("next_1_hours")
-    public Next1Hours getNext1Hours() {
+    public com.example.Next1Hours getNext1Hours() {
         return next1Hours;
     }
 
     @JsonProperty("next_1_hours")
-    public void setNext1Hours(Next1Hours next1Hours) {
+    public void setNext1Hours(com.example.Next1Hours next1Hours) {
         this.next1Hours = next1Hours;
     }
 
