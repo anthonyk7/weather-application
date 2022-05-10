@@ -1,14 +1,14 @@
 package com.example.weatherapplication;
 
 
-public class BestWeather {
+public class OurWeather {
     private String origin;
     private String timeStamp;
     private Double temperature;
     private Double windSpeed;
     private Double relativeHumidity;
 
-    public BestWeather(String origin, String timeStamp, Double temperature, Double windSpeed, Double relativeHumidity) {
+    public OurWeather(String origin, String timeStamp, Double temperature, Double windSpeed, Double relativeHumidity) {
         this.origin = origin;
         this.timeStamp = timeStamp;
         this.temperature = temperature;

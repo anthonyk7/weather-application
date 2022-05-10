@@ -1,113 +1,95 @@
 package com.example.weatherapplication.service;
 
-import com.example.weatherapplication.BestWeather;
-import com.example.weatherapplication.MET.METRestTemplate;
-import com.example.weatherapplication.SMHI.SMHIRestTemplate;
-import com.example.weatherapplication.openWeather.OpenWeatherRestTemplate;
+import com.example.weatherapplication.OurWeather;
+import com.example.weatherapplication.MET.MetDao;
+import com.example.weatherapplication.SMHI.SmhiDao;
+import com.example.weatherapplication.openWeather.OpenWeatherDao;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
-import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
 
 @Service
 public class WeatherService {
 
-    private SMHIRestTemplate smhiRestTemplate;
-    private METRestTemplate metRestTemplate;
-    private OpenWeatherRestTemplate openWeatherRestTemplate;
+    @Autowired
+    private SmhiDao smhiDao;
+
+    @Autowired
+    private MetDao metDao;
+
+    @Autowired
+    private OpenWeatherDao openWeatherDao;
 
     private int smhiCounter;
     private int metCounter;
     private int openWeatherCounter;
 
-    public WeatherService() {
-        String tomorrowsDateAndTime = LocalDateTime.now()
-                .plusDays(1L)
-                .format(DateTimeFormatter.ISO_DATE_TIME)
-                .substring(0, 13);
-
-        smhiRestTemplate = new SMHIRestTemplate(tomorrowsDateAndTime);
-        metRestTemplate = new METRestTemplate(tomorrowsDateAndTime);
-        openWeatherRestTemplate = new OpenWeatherRestTemplate();
-    }
 //jämnför alla 3s score för att ta fram bästa vädret
-    public BestWeather returnBestWeather() {
+    public OurWeather returnBestWeather() {
         compareWeatherData();
-        BestWeather bestWeather = null;
+        OurWeather bestWeather = null;
 
         if (smhiCounter > metCounter && smhiCounter > openWeatherCounter) {
-            bestWeather = new BestWeather("SMHI",
-                    smhiRestTemplate.getSmhiDateAndTime(),
-                    smhiRestTemplate.getSmhiTemperature(),
-                    smhiRestTemplate.getSmhiWindSpeed(),
-                    smhiRestTemplate.getSmhiHumidity());
+            bestWeather = smhiDao.getTomorrowsWeatherObject();
         } else if (metCounter > smhiCounter && metCounter > openWeatherCounter) {
-            bestWeather = new BestWeather("MET",
-                    metRestTemplate.getMetDateAndTime(),
-                    metRestTemplate.getMetTemperature(),
-                    metRestTemplate.getMetWindSpeed(),
-                    metRestTemplate.getMetHumidity());
+            bestWeather = metDao.getTomorrowsWeatherObject();
         } else if (openWeatherCounter > smhiCounter && openWeatherCounter > metCounter) {
-            bestWeather = new BestWeather("Open Weather",
-                    openWeatherRestTemplate.getOpenWeatherDateAndTime(),
-                    openWeatherRestTemplate.getOpenWeatherTemperature(),
-                    openWeatherRestTemplate.getOpenWeatherWindSpeed(),
-                    openWeatherRestTemplate.getOpenWeatherHumidity());
+            bestWeather = openWeatherDao.getTomorrowsWeatherObject();
         }
 
         return bestWeather;
     }
+
 //jämnför smhi mot met
     public void compareWeatherData() {
-        if (smhiRestTemplate.getSmhiTemperature() > metRestTemplate.getMetTemperature())
+        if (smhiDao.getTomorrowsWeatherObject().getTemperature() > metDao.getTomorrowsWeatherObject().getTemperature())
             smhiCounter += 4;
-        else if (metRestTemplate.getMetTemperature() > smhiRestTemplate.getSmhiTemperature())
+        else if (metDao.getTomorrowsWeatherObject().getTemperature() > smhiDao.getTomorrowsWeatherObject().getTemperature())
             metCounter += 4;
 
-        if (smhiRestTemplate.getSmhiHumidity() < metRestTemplate.getMetHumidity())
+        if (smhiDao.getTomorrowsWeatherObject().getRelativeHumidity() < metDao.getTomorrowsWeatherObject().getRelativeHumidity())
             smhiCounter += 3;
-        else if (metRestTemplate.getMetHumidity() < smhiRestTemplate.getSmhiHumidity())
+        else if (metDao.getTomorrowsWeatherObject().getRelativeHumidity() < smhiDao.getTomorrowsWeatherObject().getRelativeHumidity())
             metCounter += 3;
 
-        if (smhiRestTemplate.getSmhiWindSpeed() < metRestTemplate.getMetWindSpeed())
+        if (smhiDao.getTomorrowsWeatherObject().getWindSpeed() < metDao.getTomorrowsWeatherObject().getWindSpeed())
             smhiCounter += 2;
-        else if (metRestTemplate.getMetWindSpeed() < smhiRestTemplate.getSmhiWindSpeed())
+        else if (metDao.getTomorrowsWeatherObject().getWindSpeed() < smhiDao.getTomorrowsWeatherObject().getWindSpeed())
             metCounter += 2;
 
-//vinnare av smhi mot met möter openWeather
+        //vinnare av smhi mot met möter openWeather
         if (smhiCounter > metCounter) {
             metCounter = 0;
             smhiCounter = 0;
-            if (smhiRestTemplate.getSmhiTemperature() > openWeatherRestTemplate.getOpenWeatherTemperature())
+            if (smhiDao.getTomorrowsWeatherObject().getTemperature() > openWeatherDao.getTomorrowsWeatherObject().getTemperature())
                 smhiCounter += 4;
-            else if (openWeatherRestTemplate.getOpenWeatherTemperature() > smhiRestTemplate.getSmhiTemperature())
+            else if (openWeatherDao.getTomorrowsWeatherObject().getTemperature() > smhiDao.getTomorrowsWeatherObject().getTemperature())
                 openWeatherCounter += 4;
 
-            if (smhiRestTemplate.getSmhiHumidity() < openWeatherRestTemplate.getOpenWeatherHumidity())
+            if (smhiDao.getTomorrowsWeatherObject().getRelativeHumidity() < openWeatherDao.getTomorrowsWeatherObject().getRelativeHumidity())
                 smhiCounter += 3;
-            else if (openWeatherRestTemplate.getOpenWeatherHumidity() < smhiRestTemplate.getSmhiHumidity())
+            else if (openWeatherDao.getTomorrowsWeatherObject().getRelativeHumidity() < smhiDao.getTomorrowsWeatherObject().getRelativeHumidity())
                 openWeatherCounter += 3;
 
-            if (smhiRestTemplate.getSmhiWindSpeed() < openWeatherRestTemplate.getOpenWeatherWindSpeed())
+            if (smhiDao.getTomorrowsWeatherObject().getWindSpeed() < openWeatherDao.getTomorrowsWeatherObject().getWindSpeed())
                 smhiCounter += 2;
-            else if (openWeatherRestTemplate.getOpenWeatherWindSpeed() < smhiRestTemplate.getSmhiWindSpeed())
+            else if (openWeatherDao.getTomorrowsWeatherObject().getWindSpeed() < smhiDao.getTomorrowsWeatherObject().getWindSpeed())
                 openWeatherCounter += 2;
         } else if (metCounter > smhiCounter) {
             metCounter = 0;
             smhiCounter = 0;
-            if (openWeatherRestTemplate.getOpenWeatherTemperature() > metRestTemplate.getMetTemperature())
+            if (openWeatherDao.getTomorrowsWeatherObject().getTemperature() > metDao.getTomorrowsWeatherObject().getTemperature())
                 openWeatherCounter += 4;
-            else if (metRestTemplate.getMetTemperature() > openWeatherRestTemplate.getOpenWeatherTemperature())
+            else if (metDao.getTomorrowsWeatherObject().getTemperature() > openWeatherDao.getTomorrowsWeatherObject().getTemperature())
                 metCounter += 4;
 
-            if (openWeatherRestTemplate.getOpenWeatherHumidity() < metRestTemplate.getMetHumidity())
+            if (openWeatherDao.getTomorrowsWeatherObject().getRelativeHumidity() < metDao.getTomorrowsWeatherObject().getRelativeHumidity())
                 openWeatherCounter += 3;
-            else if (metRestTemplate.getMetHumidity() < openWeatherRestTemplate.getOpenWeatherHumidity())
+            else if (metDao.getTomorrowsWeatherObject().getRelativeHumidity() < openWeatherDao.getTomorrowsWeatherObject().getRelativeHumidity())
                 metCounter += 3;
 
-            if (openWeatherRestTemplate.getOpenWeatherWindSpeed() < metRestTemplate.getMetWindSpeed())
+            if (openWeatherDao.getTomorrowsWeatherObject().getWindSpeed() < metDao.getTomorrowsWeatherObject().getWindSpeed())
                 openWeatherCounter += 2;
-            else if (metRestTemplate.getMetWindSpeed() < openWeatherRestTemplate.getOpenWeatherWindSpeed())
+            else if (metDao.getTomorrowsWeatherObject().getWindSpeed() < openWeatherDao.getTomorrowsWeatherObject().getWindSpeed())
                 metCounter += 2;
         }
     }
