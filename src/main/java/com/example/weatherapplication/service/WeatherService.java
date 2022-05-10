@@ -1,80 +1,114 @@
 package com.example.weatherapplication.service;
 
-import com.example.weatherapplication.MET.Details;
-import com.example.weatherapplication.MET.Timeseries;
+import com.example.weatherapplication.BestWeather;
 import com.example.weatherapplication.MET.METRestTemplate;
-import com.example.weatherapplication.SMHI.Parameter;
-import com.example.weatherapplication.SMHI.SMHI;
 import com.example.weatherapplication.SMHI.SMHIRestTemplate;
-import com.example.weatherapplication.SMHI.TimeSeries;
+import com.example.weatherapplication.openWeather.OpenWeatherRestTemplate;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
-import java.util.List;
 
 @Service
 public class WeatherService {
 
     private SMHIRestTemplate smhiRestTemplate;
     private METRestTemplate metRestTemplate;
+    private OpenWeatherRestTemplate openWeatherRestTemplate;
 
-    private LocalDateTime dateTime = LocalDateTime.now().plusDays(1L);
+    private int smhiCounter;
+    private int metCounter;
+    private int openWeatherCounter;
 
-    private LocalDateTime localDateTime = LocalDateTime.now().plusDays(1L);
+    public WeatherService() {
+        String tomorrowsDateAndTime = LocalDateTime.now()
+                .plusDays(1L)
+                .format(DateTimeFormatter.ISO_DATE_TIME)
+                .substring(0, 13);
 
-    private DateTimeFormatter formatter = DateTimeFormatter.ISO_DATE_TIME;
-    private String formattedDateTime = localDateTime.format(formatter);
-    private String f = formattedDateTime.substring(0, 10);
-
-
-    public Timeseries getMETTime() {
-        List<Timeseries> timeseries = metRestTemplate.getMETRestTemplate().getProperties().getTimeseries();
-        Timeseries t = new Timeseries();
-
-        for (Timeseries time : timeseries) {
-            if (time.getTime().substring(0, 10).equals(f)) {
-                t = time;
-            }
-        }
-        return t;
+        smhiRestTemplate = new SMHIRestTemplate(tomorrowsDateAndTime);
+        metRestTemplate = new METRestTemplate(tomorrowsDateAndTime);
+        openWeatherRestTemplate = new OpenWeatherRestTemplate();
     }
 
-    public TimeSeries getSMHITIme() {
-        List<TimeSeries> timeSeries = smhiRestTemplate.getSMHIRestTemplate().getTimeSeries();
-        TimeSeries t = new TimeSeries();
+    public BestWeather returnBestWeather() {
+        compareWeatherData();
+        BestWeather bestWeather = null;
 
-        for (TimeSeries time : timeSeries) {
-            if (time.getValidTime().substring(0, 10).equals("f")) {
-                t = time;
-            }
+        if (smhiCounter > metCounter && smhiCounter > openWeatherCounter) {
+            bestWeather = new BestWeather("SMHI",
+                    smhiRestTemplate.getSmhiDateAndTime(),
+                    smhiRestTemplate.getSmhiTemperature(),
+                    smhiRestTemplate.getSmhiWindSpeed(),
+                    smhiRestTemplate.getSmhiHumidity());
+        } else if (metCounter > smhiCounter && metCounter > openWeatherCounter) {
+            bestWeather = new BestWeather("MET",
+                    metRestTemplate.getMetDateAndTime(),
+                    metRestTemplate.getMetTemperature(),
+                    metRestTemplate.getMetWindSpeed(),
+                    metRestTemplate.getMetHumidity());
+        } else if (openWeatherCounter > smhiCounter && openWeatherCounter > metCounter) {
+            bestWeather = new BestWeather("Open Weather",
+                    openWeatherRestTemplate.getOpenWeatherDateAndTime(),
+                    openWeatherRestTemplate.getOpenWeatherTemperature(),
+                    openWeatherRestTemplate.getOpenWeatherWindSpeed(),
+                    openWeatherRestTemplate.getOpenWeatherHumidity());
         }
-        return t;
+
+        return bestWeather;
     }
 
-    public void getWeather() {
-        Timeseries METTime = getMETTime();
-        TimeSeries SMHITIme = getSMHITIme();
+    public void compareWeatherData() {
+        if (smhiRestTemplate.getSmhiTemperature() > metRestTemplate.getMetTemperature())
+            smhiCounter += 4;
+        else if (metRestTemplate.getMetTemperature() > smhiRestTemplate.getSmhiTemperature())
+            metCounter += 4;
 
-        Double temp;
-        temp = METTime.getData().getInstant().getDetails().getAirTemperature();
-        Double humidity;
-        humidity = METTime.getData().getInstant().getDetails().getRelativeHumidity();
-        // r fukt
-        // t tempratur
+        if (smhiRestTemplate.getSmhiHumidity() < metRestTemplate.getMetHumidity())
+            smhiCounter += 3;
+        else if (metRestTemplate.getMetHumidity() < smhiRestTemplate.getSmhiHumidity())
+            metCounter += 3;
 
-        Double temprature;
-        Double fukt;
-        Integer metPoints = 0;
-        Integer smhiPoints = 0;
+        if (smhiRestTemplate.getSmhiWindSpeed() < metRestTemplate.getMetWindSpeed())
+            smhiCounter += 2;
+        else if (metRestTemplate.getMetWindSpeed() < smhiRestTemplate.getSmhiWindSpeed())
+            metCounter += 2;
 
-        for (Parameter p : SMHITIme.getParameters()) {
-            if (p.getName().equals("t")) {
-                temprature = p.getValues().get(0);
-            } else if (p.getName().equals("r")) {
-                fukt = p.getValues().get(0);
-            }
+
+        if (smhiCounter > metCounter) {
+            metCounter = 0;
+            smhiCounter = 0;
+            if (smhiRestTemplate.getSmhiTemperature() > openWeatherRestTemplate.getOpenWeatherTemperature())
+                smhiCounter += 4;
+            else if (openWeatherRestTemplate.getOpenWeatherTemperature() > smhiRestTemplate.getSmhiTemperature())
+                openWeatherCounter += 4;
+
+            if (smhiRestTemplate.getSmhiHumidity() < openWeatherRestTemplate.getOpenWeatherHumidity())
+                smhiCounter += 3;
+            else if (openWeatherRestTemplate.getOpenWeatherHumidity() < smhiRestTemplate.getSmhiHumidity())
+                openWeatherCounter += 3;
+
+            if (smhiRestTemplate.getSmhiWindSpeed() < openWeatherRestTemplate.getOpenWeatherWindSpeed())
+                smhiCounter += 2;
+            else if (openWeatherRestTemplate.getOpenWeatherWindSpeed() < smhiRestTemplate.getSmhiWindSpeed())
+                openWeatherCounter += 2;
+        } else if (metCounter > smhiCounter) {
+            metCounter = 0;
+            smhiCounter = 0;
+            if (openWeatherRestTemplate.getOpenWeatherTemperature() > metRestTemplate.getMetTemperature())
+                openWeatherCounter += 4;
+            else if (metRestTemplate.getMetTemperature() > openWeatherRestTemplate.getOpenWeatherTemperature())
+                metCounter += 4;
+
+            if (openWeatherRestTemplate.getOpenWeatherHumidity() < metRestTemplate.getMetHumidity())
+                openWeatherCounter += 3;
+            else if (metRestTemplate.getMetHumidity() < openWeatherRestTemplate.getOpenWeatherHumidity())
+                metCounter += 3;
+
+            if (openWeatherRestTemplate.getOpenWeatherWindSpeed() < metRestTemplate.getMetWindSpeed())
+                openWeatherCounter += 2;
+            else if (metRestTemplate.getMetWindSpeed() < openWeatherRestTemplate.getOpenWeatherWindSpeed())
+                metCounter += 2;
         }
     }
 }
