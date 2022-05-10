@@ -30,7 +30,7 @@ public class WeatherService {
         metRestTemplate = new METRestTemplate(tomorrowsDateAndTime);
         openWeatherRestTemplate = new OpenWeatherRestTemplate();
     }
-
+//jämnför alla 3s score för att ta fram bästa vädret
     public BestWeather returnBestWeather() {
         compareWeatherData();
         BestWeather bestWeather = null;
@@ -57,7 +57,7 @@ public class WeatherService {
 
         return bestWeather;
     }
-
+//jämnför smhi mot met
     public void compareWeatherData() {
         if (smhiRestTemplate.getSmhiTemperature() > metRestTemplate.getMetTemperature())
             smhiCounter += 4;
@@ -74,7 +74,7 @@ public class WeatherService {
         else if (metRestTemplate.getMetWindSpeed() < smhiRestTemplate.getSmhiWindSpeed())
             metCounter += 2;
 
-
+//vinnare av smhi mot met möter openWeather
         if (smhiCounter > metCounter) {
             metCounter = 0;
             smhiCounter = 0;
